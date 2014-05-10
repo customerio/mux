@@ -25,10 +25,7 @@ type routeTest struct {
 func TestHost(t *testing.T) {
 	// newRequestHost a new request with a method, url, and host header
 	newRequestHost := func(method, url, host string) *http.Request {
-		req, err := http.NewRequest(method, url, nil)
-		if err != nil {
-			panic(err)
-		}
+		req := newRequest(method, url)
 		req.Host = host
 		return req
 	}
@@ -332,10 +329,7 @@ func TestHostPath(t *testing.T) {
 func TestHeaders(t *testing.T) {
 	// newRequestHeaders creates a new request with a method, url, and headers
 	newRequestHeaders := func(method, url string, headers map[string]string) *http.Request {
-		req, err := http.NewRequest(method, url, nil)
-		if err != nil {
-			panic(err)
-		}
+		req := newRequest(method, url)
 		for k, v := range headers {
 			req.Header.Add(k, v)
 		}
@@ -582,7 +576,7 @@ func TestStrictSlash(t *testing.T) {
 	r = NewRouter()
 	r.StrictSlash(true)
 	route = r.NewRoute().PathPrefix("/static/")
-	req, _ = http.NewRequest("GET", "http://localhost/static/logo.png", nil)
+	req = newRequest("GET", "http://localhost/static/logo.png")
 	match = new(RouteMatch)
 	matched = r.Match(req, match)
 	if !matched {
@@ -666,7 +660,7 @@ func TestKeepContext(t *testing.T) {
 	r := NewRouter()
 	r.HandleFunc("/", func1).Name("func1")
 
-	req, _ := http.NewRequest("GET", "http://localhost/", nil)
+	req := newRequest("GET", "http://localhost/")
 	context.Set(req, "t", 1)
 
 	res := new(http.ResponseWriter)
@@ -678,7 +672,7 @@ func TestKeepContext(t *testing.T) {
 
 	r.KeepContext = true
 
-	req, _ = http.NewRequest("GET", "http://localhost/", nil)
+	req = newRequest("GET", "http://localhost/")
 	context.Set(req, "t", 1)
 
 	r.ServeHTTP(*res, req)
@@ -701,7 +695,7 @@ func TestSubrouterHeader(t *testing.T) {
 	s.HandleFunc("/", func1).Name("func1")
 	r.HandleFunc("/", func2).Name("func2")
 
-	req, _ := http.NewRequest("GET", "http://localhost/", nil)
+	req := newRequest("GET", "http://localhost/")
 	req.Header.Add("SomeSpecialHeader", "foo")
 	match := new(RouteMatch)
 	matched := r.Match(req, match)
@@ -751,5 +745,6 @@ func newRequest(method, url string) *http.Request {
 	if err != nil {
 		panic(err)
 	}
+	req.RequestURI = req.URL.Path
 	return req
 }
