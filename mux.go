@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"strings"
 
 	"github.com/gorilla/context"
 )
@@ -65,8 +66,10 @@ func (r *Router) Match(req *http.Request, match *RouteMatch) bool {
 // When there is a match, the route variables can be retrieved calling
 // mux.Vars(request).
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	path := strings.Split(req.RequestURI, "?")[0]
+
 	// Clean path to canonical form and redirect.
-	if p := cleanPath(req.URL.Path); p != req.URL.Path {
+	if p := cleanPath(path); p != path {
 		w.Header().Set("Location", p)
 		w.WriteHeader(http.StatusMovedPermanently)
 		return
